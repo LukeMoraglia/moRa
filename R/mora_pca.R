@@ -1,3 +1,5 @@
+#' @import ggplot2
+#' @import stats
 MakeToleranceIntervals1 <- function (data, design, axis1 = 1, axis2 = 2, names.of.factors = paste0("Dimension ",
                                                                                                    c(axis1, axis2)), col = NULL, centers = NULL, line.size = 1,
                                      line.type = 1, alpha.ellipse = 0.3, alpha.line = 0.5, p.level = 0.66,
@@ -62,6 +64,8 @@ MakeToleranceIntervals1 <- function (data, design, axis1 = 1, axis2 = 2, names.o
 }
 
 
+#' @import ggplot2
+#' @import prettyGraphs
 MakeCIEllipses1 <- function (data, axis1 = 1, axis2 = 2, names.of.factors = paste0("Dimension ",
                                                                                    c(axis1, axis2)), col = NULL, centers = NULL, line.size = 1,
                              line.type = 1, alpha.ellipse = 0.3, alpha.line = 0.5, p.level = 0.95)
@@ -108,7 +112,9 @@ MakeCIEllipses1 <- function (data, axis1 = 1, axis2 = 2, names.of.factors = past
    return(LeGraph.elli)
 }
 
-PCA_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, inference = TRUE){
+#' @import PTCA4CATA
+#' @import stats
+pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, inference = TRUE){
    #resPCA$Fixed.Data$Plotting.Data$fi.col <- col4fii
    a.points <- 0.9
    if(inference){
@@ -185,8 +191,11 @@ PCA_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
 
 }
 
-
-PCA_columns <- function(resPCA, data, axis1, axis2){
+#' @import stats
+#' @import PTCA4CATA
+#' @import ggplot2
+#' @import prettyGraphs
+pca_columns <- function(resPCA, data, axis1, axis2){
    #resPCA$Fixed.Data$Plotting.Data$fj.col <- col4Xvar
    cor.loading <- cor(data, resPCA$Fixed.Data$ExPosition.Data$fi)
 
@@ -254,7 +263,7 @@ PCA_columns <- function(resPCA, data, axis1, axis2){
 #' @importFrom PTCA4CATA PlotScree
 #' @import InPosition
 #' @export
-moRa_PCA <- function(data,
+mora_pca <- function(data,
                     design = "NULL",
                     make_design_nominal = TRUE,
                     col4obs = "olivedrab3",
@@ -276,15 +285,15 @@ moRa_PCA <- function(data,
                            p.ev = resPCA$Inference.Data$components$p.vals,
                            plotKaiser = TRUE)
 
-   PCA_fscores(resPCA = resPCA, design = design, axis1 = 1, axis2 = 2,
+   pca_fscores(resPCA = resPCA, design = design, axis1 = 1, axis2 = 2,
                col4obs = col4obs, col4group = col4group, inference = inference)
 
-   PCA_columns(resPCA, data = data, 1, 2)
+   pca_columns(resPCA, data = data, 1, 2)
 
    if(want34){
-      PCA_fscores(resPCA = resPCA, design = design, axis1 = 3, axis2 = 4,
+      pca_fscores(resPCA = resPCA, design = design, axis1 = 3, axis2 = 4,
                   col4obs = col4obs, col4group = col4group)
 
-      PCA_columns(resPCA, data = data, 3, 4)
+      pca_columns(resPCA, data = data, 3, 4)
    }
 }

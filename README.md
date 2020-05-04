@@ -1,25 +1,16 @@
 
 # moRa
 
-<!-- badges: start -->
-<!-- badges: end -->
-
-The goal of moRa is to ...
+A package of functions that I might find helpful for myself. Mainly tools to run and graph the multivariate
+analyses that I work on.
 
 ## Installation
 
-You can install the released version of moRa from [CRAN](https://CRAN.R-project.org) with:
-
 ``` r
-install.packages("moRa")
+devtools::install_github(LukeMoraglia/moRa)
 ```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(moRa)
-## basic example code
-```
+Not provided at this time.
 
