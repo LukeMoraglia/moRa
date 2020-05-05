@@ -13,10 +13,16 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 Imports: 
     corrplot,
+    data4PCCAR,
+    ExPosition,
     ggplot2,
+    ggplotify,
+    gridExtra,
     InPosition,
     magrittr,
     prettyGraphs,
-    PTCA4CATA
+    PTCA4CATA,
+    stats,
+    TExPosition
 URL: https://github.com/LukeMoraglia/moRa
 BugReports: https://github.com/LukeMoraglia/moRa/issues

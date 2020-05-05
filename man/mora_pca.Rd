@@ -23,9 +23,9 @@ mora_pca(
 
 \item{make_design_nominal}{(default = TRUE) If design is a dummy-coded matrix, should be set to FALSE.}
 
-\item{col4obs}{(default = ) A single color or vector of colors whose length is equal to nrow(data).}
+\item{col4obs}{(default = "olivedrab3") A single color or vector of colors whose length is equal to nrow(data).}
 
-\item{col4group}{(default = ) A single color or vector of colors whose length is the number of groups in design}
+\item{col4group}{(default = "olivedrab3") A single color or vector of colors whose length is the number of groups in design.}
 
 \item{center}{(default = TRUE) Whether to center variables}
 

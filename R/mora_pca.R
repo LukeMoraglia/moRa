@@ -253,8 +253,8 @@ pca_columns <- function(resPCA, data, axis1, axis2){
 #' @param data The numerical data for PCA.
 #' @param design (default = NULL) A vector or dummy-coded matrix that describes the rows.
 #' @param make_design_nominal (default = TRUE) If design is a dummy-coded matrix, should be set to FALSE.
-#' @param col4obs (default = ) A single color or vector of colors whose length is equal to nrow(data).
-#' @param col4group (default = ) A single color or vector of colors whose length is the number of groups in design
+#' @param col4obs (default = "olivedrab3") A single color or vector of colors whose length is equal to nrow(data).
+#' @param col4group (default = "olivedrab3") A single color or vector of colors whose length is the number of groups in design.
 #' @param center (default = TRUE) Whether to center variables
 #' @param scale (default = "SS1") Whether to scale variables
 #' @param want34 (default = FALSE) By default, only prints dimensions 1 and 2. Set to TRUE for 3 and 4.
