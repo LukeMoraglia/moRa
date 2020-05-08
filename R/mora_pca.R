@@ -264,7 +264,7 @@ pca_columns <- function(resPCA, data, axis1, axis2){
 #' @import InPosition
 #' @export
 mora_pca <- function(data,
-                    design = "NULL",
+                    design = NULL,
                     make_design_nominal = TRUE,
                     col4obs = "olivedrab3",
                     col4group = "olivedrab3",
@@ -292,7 +292,7 @@ mora_pca <- function(data,
 
    if(want34){
       pca_fscores(resPCA = resPCA, design = design, axis1 = 3, axis2 = 4,
-                  col4obs = col4obs, col4group = col4group)
+                  col4obs = col4obs, col4group = col4group, inference = inference)
 
       pca_columns(resPCA, data = data, 3, 4)
    }
