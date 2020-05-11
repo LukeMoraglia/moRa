@@ -6,73 +6,36 @@ plsc_saliences <- function(resPLS, lvNum = 1, important = FALSE){
    p <- resPLS$TExPosition.Data$pdq$p
    q <- resPLS$TExPosition.Data$pdq$q
 
-   pPlot <- TRUE
-   qPlot <- TRUE
 
-   if(important){
-      impRowP <- which(p[,lvNum] > sqrt(1/nrow(p)))
-      impRowQ <- which(q[,lvNum] > sqrt(1/nrow(q)))
 
-      if(length(impRowP) == 0){
-         pPlot <- FALSE
-      }
+   plot.p <- PrettyBarPlot2(p[,lvNum],
+                            threshold = sqrt(1/nrow(p)),
+                            font.size = 3,
+                            ylab = 'p for Lx',
+                            horizontal = FALSE,
+                            signifOnly = important
+   ) +
+      ggtitle(paste("Column saliences of X for Latent Variable", lvNum))
 
-      if(length(impRowQ) == 0){
-          qPlot <- FALSE
-      }
+   plot.q <- PrettyBarPlot2(q[,lvNum],
+                            threshold = sqrt(1/nrow(q)),
+                            font.size = 3,
+                            ylab = 'q for Ly',
+                            signifOnly = important
+   ) +
+      ggtitle(paste("Column saliences of Y for Latent Variable", lvNum))
 
-      if(pPlot){
-         plot3p <- PrettyBarPlot2(p[impRowP,lvNum],
-                                  threshold = 0,
-                                  font.size = 3,
-                                  #color4bar = gplots::col2hex(col4Xvar),
-                                  ylab = 'p for Lx',
-                                  horizontal = FALSE
-                                  #ylim = c(1.2*min(p[,lvNum]), 1.2*max(p[,lvNum]))
-         ) +
-            ggtitle(paste("Column saliences of X for Latent Variable", lvNum))
-      }
-
-      if(qPlot){
-      plot3q <- PrettyBarPlot2(q[impRowQ,lvNum],
-                               threshold = 0,
-                               font.size = 3,
-                               #color4bar = col4Yvar,
-                               ylab = 'q for Ly',
-                               #ylim = c(1.2*min(q[,lvNum]), 1.2*max(q[,lvNum]))
-      ) +
-         ggtitle(paste("Column saliences of Y for Latent Variable", lvNum))
-      }
-
-   } else{
-      plot3p <- PrettyBarPlot2(p[,lvNum],
-                               threshold = sqrt(1/nrow(p)),
-                               font.size = 3,
-                               #color4bar = gplots::col2hex(col4Xvar),
-                               ylab = 'p for Lx',
-                               horizontal = FALSE
-                               #ylim = c(1.2*min(p[,lvNum]), 1.2*max(p[,lvNum]))
-      ) +
-         ggtitle(paste("Column saliences of X for Latent Variable", lvNum))
-
-      plot3q <- PrettyBarPlot2(q[,lvNum],
-                               threshold = sqrt(1/nrow(q)),
-                               font.size = 3,
-                               #color4bar = col4Yvar,
-                               ylab = 'q for Ly',
-                               #ylim = c(1.2*min(q[,lvNum]), 1.2*max(q[,lvNum]))
-      ) +
-         ggtitle(paste("Column saliences of Y for Latent Variable", lvNum))
-   }
+   pPlot <- length(plot.p$data$bootratio) > 0
+   qPlot <- length(plot.q$data$bootratio) > 0
 
    if(pPlot & qPlot){
-       grid.arrange(as.grob(plot3p), as.grob(plot3q), nrow = 2)
+       grid.arrange(as.grob(plot.p), as.grob(plot.q), nrow = 2)
    }
    else if(pPlot){
-      print(plot3p)
+      print(plot.p)
    }
    else if(qPlot){
-      print(plot3q)
+      print(plot.q)
    }
 
 }
@@ -95,65 +58,26 @@ plsc_boot_ratio <- function(data1, data2,
       boot.res$bootRatios.i <- BRIJ$P
       boot.res$bootRatios.j <- BRIJ$Q
 
-      briplot <- TRUE
-      brjplot <- TRUE
+      plotBRi <- PrettyBarPlot2(boot.res$bootRatios.i[,lvNum],
+                                threshold = 2,
+                                font.size = 3,
+                                signifOnly = important,
+                                ylab = 'BR for Lx',
+                                horizontal = FALSE
+                                ) +
+         ggtitle(paste("Bootstrap ratios of X for Latent Variable", lvNum))
 
-      if(important){
-         impBRi <- which(boot.res$bootRatios.i[,lvNum] > 2)
-         impBRj <- which(boot.res$bootRatios.j[,lvNum] > 2)
+      plotBRj <- PrettyBarPlot2(boot.res$bootRatios.j[,lvNum],
+                                threshold = 2,
+                                font.size = 3,
+                                signifOnly = important,
+                                ylab = 'BR for Ly',
+                                horizontal = TRUE
+      ) +
+         ggtitle(paste("Bootstrap ratios of Y for Latent Variable", lvNum))
 
-         if(length(impBRi) == 0){
-            briplot <- FALSE
-         }
-         if(length(impBRj) == 0){
-            brjplot <- FALSE
-         }
-
-         if(briplot){
-            plotBRi <- PrettyBarPlot2(boot.res$bootRatios.i[impBRi,lvNum],
-                                      threshold = 0,
-                                      font.size = 3,
-                                      #color4bar = gplots::col2hex(col4Xvar),
-                                      ylab = 'BR for Lx',
-                                      horizontal = FALSE
-                                      #ylim = c(1.2*min(p[,lvNum]), 1.2*max(p[,lvNum]))
-            ) +
-               ggtitle(paste("Bootstrap ratios of X for Latent Variable", lvNum))
-         }
-         if(brjplot){
-            plotBRj <- PrettyBarPlot2(boot.res$bootRatios.j[impBRj,lvNum],
-                                      threshold = 0,
-                                      font.size = 3,
-                                      #color4bar = gplots::col2hex(col4Xvar),
-                                      ylab = 'BR for Ly',
-                                      horizontal = TRUE
-                                      #ylim = c(1.2*min(p[,lvNum]), 1.2*max(p[,lvNum]))
-            ) +
-               ggtitle(paste("Bootstrap ratios of Y for Latent Variable", lvNum))
-         }
-      }
-      else{
-
-         plotBRi <- PrettyBarPlot2(boot.res$bootRatios.i[,lvNum],
-                                   threshold = 2,
-                                   font.size = 3,
-                                   #color4bar = gplots::col2hex(col4Xvar),
-                                   ylab = 'BR for Lx',
-                                   horizontal = FALSE
-                                   #ylim = c(1.2*min(p[,lvNum]), 1.2*max(p[,lvNum]))
-         ) +
-            ggtitle(paste("Bootstrap ratios of X for Latent Variable", lvNum))
-
-         plotBRj <- PrettyBarPlot2(boot.res$bootRatios.j[,lvNum],
-                                   threshold = 2,
-                                   font.size = 3,
-                                   #color4bar = gplots::col2hex(col4Xvar),
-                                   ylab = 'BR for Ly',
-                                   horizontal = TRUE
-                                   #ylim = c(1.2*min(p[,lvNum]), 1.2*max(p[,lvNum]))
-         ) +
-            ggtitle(paste("Bootstrap ratios of Y for Latent Variable", lvNum))
-      }
+      briplot <- length(plotBRi$data$bootratio) > 0
+      brjplot <- length(plotBRj$data$bootratio) > 0
 
       if(briplot & brjplot){
           grid.arrange(as.grob(plotBRi), as.grob(plotBRj), nrow = 2)

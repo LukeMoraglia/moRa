@@ -6,7 +6,7 @@
 \usage{
 mora_pca(
   data,
-  design = "NULL",
+  design = NULL,
   make_design_nominal = TRUE,
   col4obs = "olivedrab3",
   col4group = "olivedrab3",
