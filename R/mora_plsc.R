@@ -79,13 +79,10 @@ plsc_boot_ratio <- function(data1, data2,
       briplot <- length(plotBRi$data$bootratio) > 0
       brjplot <- length(plotBRj$data$bootratio) > 0
 
-      if(briplot & brjplot){
-          grid.arrange(as.grob(plotBRi), as.grob(plotBRj), nrow = 2)
-      }
-      else if(briplot){
+      if(briplot){
          print(plotBRi)
       }
-      else if(brjplot){
+      if(brjplot){
          print(plotBRj)
       }
 }
