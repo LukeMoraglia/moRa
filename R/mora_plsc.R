@@ -11,6 +11,8 @@ plsc_saliences <- function(resPLS, lvNum = 1, important = FALSE){
    plot.p <- PrettyBarPlot2(p[,lvNum],
                             threshold = sqrt(1/nrow(p)),
                             font.size = 3,
+                            ylim = c(min(-sqrt(1/nrow(p)), p[,lvNum]),
+                                     max(sqrt(1/nrow(p)), p[,lvNum])),
                             ylab = 'p for Lx',
                             horizontal = FALSE,
                             signifOnly = important
@@ -61,8 +63,8 @@ plsc_boot_ratio <- function(data1, data2,
       plotBRi <- PrettyBarPlot2(boot.res$bootRatios.i[,lvNum],
                                 threshold = 2,
                                 font.size = 3,
-                                ylim = c(min(-1, 1.2*min(boot.res$bootRatios.i[,lvNum])),
-                                         max(1, 1.2*max(boot.res$bootRatios.i[,lvNum]))),
+                                ylim = c(min(-2, 1.2*min(boot.res$bootRatios.i[,lvNum])),
+                                         max(2, 1.2*max(boot.res$bootRatios.i[,lvNum]))),
                                 signifOnly = important,
                                 ylab = 'BR for Lx',
                                 horizontal = FALSE
@@ -72,8 +74,8 @@ plsc_boot_ratio <- function(data1, data2,
       plotBRj <- PrettyBarPlot2(boot.res$bootRatios.j[,lvNum],
                                 threshold = 2,
                                 font.size = 3,
-                                ylim = c(min(-1, 1.2*min(boot.res$bootRatios.j[,lvNum])),
-                                         max(1, 1.2*max(boot.res$bootRatios.j[,lvNum]))),
+                                ylim = c(min(-2, 1.2*min(boot.res$bootRatios.j[,lvNum])),
+                                         max(2, 1.2*max(boot.res$bootRatios.j[,lvNum]))),
                                 signifOnly = important,
                                 ylab = 'BR for Ly',
                                 horizontal = TRUE
@@ -83,10 +85,13 @@ plsc_boot_ratio <- function(data1, data2,
       briplot <- length(plotBRi$data$bootratio) > 0
       brjplot <- length(plotBRj$data$bootratio) > 0
 
-      if(briplot){
+      if(briplot & brjplot){
+         grid.arrange(as.grob(plotBRi), as.grob(plotBRj), nrow = 2)
+      }
+      else if(briplot){
          print(plotBRi)
       }
-      if(brjplot){
+      else if(brjplot){
          print(plotBRj)
       }
 }
