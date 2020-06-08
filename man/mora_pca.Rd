@@ -10,6 +10,7 @@ mora_pca(
   make_design_nominal = TRUE,
   col4obs = "olivedrab3",
   col4group = "olivedrab3",
+  col4var = NULL,
   center = TRUE,
   scale = "SS1",
   want34 = FALSE,
@@ -26,6 +27,8 @@ mora_pca(
 \item{col4obs}{(default = "olivedrab3") A single color or vector of colors whose length is equal to nrow(data).}
 
 \item{col4group}{(default = "olivedrab3") A single color or vector of colors whose length is the number of groups in design.}
+
+\item{col4var}{(default = NULL) A vector of colors whose length is the equal to ncol(data).}
 
 \item{center}{(default = TRUE) Whether to center variables}
 

@@ -195,8 +195,8 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
 #' @import PTCA4CATA
 #' @import ggplot2
 #' @import prettyGraphs
-pca_columns <- function(resPCA, data, axis1, axis2){
-   #resPCA$Fixed.Data$Plotting.Data$fj.col <- col4Xvar
+pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
+
    cor.loading <- cor(data, resPCA$Fixed.Data$ExPosition.Data$fi)
 
    loading.plot <- createFactorMap(cor.loading,
@@ -206,10 +206,7 @@ pca_columns <- function(resPCA, data, axis1, axis2){
                                    cex = 1,
                                    force = 0.5,
                                    axis1 = axis1,
-                                   axis2 = axis2
-                                   #col.points = res_pcaInf$Fixed.Data$Plotting.Data$fj.col,
-                                   #col.labels = res_pcaInf$Fixed.Data$Plotting.Data$fj.col
-   )
+                                   axis2 = axis2)
 
    LoadingMapWithCircles <- loading.plot$zeMap +
       addArrows(cor.loading,
@@ -223,6 +220,31 @@ pca_columns <- function(resPCA, data, axis1, axis2){
 
    print(LoadingMapWithCircles)
 
+   colFactorMap <- col4var
+   if(is.null(col4var)){
+      colFactorMap <- "darkorchid4"
+   }
+
+   my.fj.plot <- createFactorMap(resPCA$Fixed.Data$ExPosition.Data$fj,
+                              #constraints = list(minx = -1, miny = -1, maxx = 1, maxy = 1),
+                              font.face = "plain",
+                              text.cex = 2.5,
+                              cex = 1,
+                              force = 0.5,
+                              axis1 = axis1,
+                              axis2 = axis2,
+                              col.points = colFactorMap,
+                              col.labels = colFactorMap
+   )
+
+   fj.labels <- createxyLabels.gen(axis1, axis2,
+                                   lambda = resPCA$Fixed.Data$ExPosition.Data$eigs,
+                                   tau = round(resPCA$Fixed.Data$ExPosition.Data$t),
+                                   axisName = "Component "
+   )
+   fj.plot <- my.fj.plot$zeMap + fj.labels
+   print(fj.plot)
+
    signed.ctrJ <- resPCA$Fixed.Data$ExPosition.Data$cj *
       sign(resPCA$Fixed.Data$ExPosition.Data$fj)
 
@@ -230,7 +252,7 @@ pca_columns <- function(resPCA, data, axis1, axis2){
    ctrJ.1 <- PrettyBarPlot2(signed.ctrJ[,axis1],
                             threshold = 1 / NROW(signed.ctrJ),
                             font.size = 3,
-                            #color4bar = gplots::col2hex(res_pcaInf$Fixed.Data$Plotting.Data$fj.col),
+                            color4bar = col4var,
                             ylab = 'Contributions',
                             ylim = c(1.2*min(signed.ctrJ[,axis1:axis2]), 1.2*max(signed.ctrJ[,axis1:axis2]))) +
       ggtitle("Contribution barplots", subtitle = paste("Component", axis1))
@@ -239,13 +261,18 @@ pca_columns <- function(resPCA, data, axis1, axis2){
    ctrJ.2 <- PrettyBarPlot2(signed.ctrJ[,axis2],
                             threshold = 1 / NROW(signed.ctrJ),
                             font.size = 3,
-                            #color4bar = gplots::col2hex(res_pcaInf$Fixed.Data$Plotting.Data$fj.col),
+                            color4bar = col4var,
                             ylab = 'Contributions',
                             ylim = c(1.2*min(signed.ctrJ[,axis1:axis2]), 1.2*max(signed.ctrJ[,axis1:axis2]))) +
       ggtitle("",subtitle = paste("Component", axis2))
 
    print(ctrJ.1)
    print(ctrJ.2)
+
+   pca_columns_res <- list(corCircle = LoadingMapWithCircles, fj.plot = my.fj.plot,
+                           ctr = list(ctrJ.1, ctrJ.2))
+
+   return(pca_columns_res)
 
 }
 
@@ -255,6 +282,7 @@ pca_columns <- function(resPCA, data, axis1, axis2){
 #' @param make_design_nominal (default = TRUE) If design is a dummy-coded matrix, should be set to FALSE.
 #' @param col4obs (default = "olivedrab3") A single color or vector of colors whose length is equal to nrow(data).
 #' @param col4group (default = "olivedrab3") A single color or vector of colors whose length is the number of groups in design.
+#' @param col4var (default = NULL) A vector of colors whose length is the equal to ncol(data).
 #' @param center (default = TRUE) Whether to center variables
 #' @param scale (default = "SS1") Whether to scale variables
 #' @param want34 (default = FALSE) By default, only prints dimensions 1 and 2. Set to TRUE for 3 and 4.
@@ -268,6 +296,7 @@ mora_pca <- function(data,
                     make_design_nominal = TRUE,
                     col4obs = "olivedrab3",
                     col4group = "olivedrab3",
+                    col4var = NULL,
                     center = TRUE,
                     scale = "SS1",
                     want34 = FALSE,
@@ -288,12 +317,12 @@ mora_pca <- function(data,
    pca_fscores(resPCA = resPCA, design = design, axis1 = 1, axis2 = 2,
                col4obs = col4obs, col4group = col4group, inference = inference)
 
-   pca_columns(resPCA, data = data, 1, 2)
+   pca_columns(resPCA, data = data, 1, 2, col4var = col4var)
 
    if(want34){
       pca_fscores(resPCA = resPCA, design = design, axis1 = 3, axis2 = 4,
                   col4obs = col4obs, col4group = col4group, inference = inference)
 
-      pca_columns(resPCA, data = data, 3, 4)
+      pca_columns(resPCA, data = data, 3, 4, col4var = col4var)
    }
 }
