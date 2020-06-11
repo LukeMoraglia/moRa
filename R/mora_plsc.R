@@ -1,14 +1,11 @@
-#' @import prettyGraphs
 #' @import ggplot2
-#' @importFrom ggplotify as.grob
-#' @importFrom gridExtra grid.arrange
 plsc_saliences <- function(resPLS, lvNum = 1, important = FALSE){
    p <- resPLS$TExPosition.Data$pdq$p
    q <- resPLS$TExPosition.Data$pdq$q
 
 
 
-   plot.p <- PrettyBarPlot2(p[,lvNum],
+   plot.p <- PTCA4CATA::PrettyBarPlot2(p[,lvNum],
                             threshold = sqrt(1/nrow(p)),
                             font.size = 3,
                             ylim = c(min(-sqrt(1/nrow(p)), p[,lvNum]),
@@ -19,7 +16,7 @@ plsc_saliences <- function(resPLS, lvNum = 1, important = FALSE){
    ) +
       ggtitle(paste("Column saliences of X for Latent Variable", lvNum))
 
-   plot.q <- PrettyBarPlot2(q[,lvNum],
+   plot.q <- PTCA4CATA::PrettyBarPlot2(q[,lvNum],
                             threshold = sqrt(1/nrow(q)),
                             font.size = 3,
                             ylab = 'q for Ly',
@@ -31,7 +28,9 @@ plsc_saliences <- function(resPLS, lvNum = 1, important = FALSE){
    qPlot <- length(plot.q$data$bootratio) > 0
 
    if(pPlot & qPlot){
-       grid.arrange(as.grob(plot.p), as.grob(plot.q), nrow = 2)
+       gridExtra::grid.arrange(ggplotify::as.grob(plot.p),
+                               ggplotify::as.grob(plot.q),
+                               nrow = 2)
    }
    else if(pPlot){
       print(plot.p)
@@ -42,11 +41,8 @@ plsc_saliences <- function(resPLS, lvNum = 1, important = FALSE){
 
 }
 
-#' @import data4PCCAR
-#' @import prettyGraphs
+
 #' @import ggplot2
-#' @importFrom ggplotify as.grob
-#' @importFrom gridExtra grid.arrange
 plsc_boot_ratio <- function(data1, data2,
                     center1, center2,
                     scale1, scale2,
@@ -54,13 +50,14 @@ plsc_boot_ratio <- function(data1, data2,
                     important = FALSE){
 
 
-      boot.res <- Boot4PLSC(data1, data2, center1, center2, scale1, scale2, Fi, Fj)
+      boot.res <- data4PCCAR::Boot4PLSC(data1, data2, center1, center2,
+                                        scale1, scale2, Fi, Fj)
 
-      BRIJ <- firstpos(boot.res$bootRatios.i, boot.res$bootRatios.j)
+      BRIJ <- data4PCCAR::firstpos(boot.res$bootRatios.i, boot.res$bootRatios.j)
       boot.res$bootRatios.i <- BRIJ$P
       boot.res$bootRatios.j <- BRIJ$Q
 
-      plotBRi <- PrettyBarPlot2(boot.res$bootRatios.i[,lvNum],
+      plotBRi <- PTCA4CATA::PrettyBarPlot2(boot.res$bootRatios.i[,lvNum],
                                 threshold = 2,
                                 font.size = 3,
                                 ylim = c(min(-2, 1.2*min(boot.res$bootRatios.i[,lvNum])),
@@ -71,7 +68,7 @@ plsc_boot_ratio <- function(data1, data2,
                                 ) +
          ggtitle(paste("Bootstrap ratios of X for Latent Variable", lvNum))
 
-      plotBRj <- PrettyBarPlot2(boot.res$bootRatios.j[,lvNum],
+      plotBRj <- PTCA4CATA::PrettyBarPlot2(boot.res$bootRatios.j[,lvNum],
                                 threshold = 2,
                                 font.size = 3,
                                 ylim = c(min(-2, 1.2*min(boot.res$bootRatios.j[,lvNum])),
@@ -86,7 +83,9 @@ plsc_boot_ratio <- function(data1, data2,
       brjplot <- length(plotBRj$data$bootratio) > 0
 
       if(briplot & brjplot){
-         grid.arrange(as.grob(plotBRi), as.grob(plotBRj), nrow = 2)
+         gridExtra::grid.arrange(ggplotify::as.grob(plotBRi),
+                                 ggplotify::as.grob(plotBRj),
+                                 nrow = 2)
       }
       else if(briplot){
          print(plotBRi)
@@ -96,11 +95,15 @@ plsc_boot_ratio <- function(data1, data2,
       }
 }
 
-#' @import PTCA4CATA
-#' @import stats
+
 #' @import ggplot2
-#' @import ExPosition
-plsc_latent_variable <- function(resPLS, design, col4obs, col4group, lvNum, inference = inference){
+plsc_latent_variable <- function(resPLS,
+                                 design,
+                                 col4obs,
+                                 col4group,
+                                 lvNum,
+                                 inference = inference){
+
    latvar <- cbind(resPLS$TExPosition.Data$lx[,lvNum],resPLS$TExPosition.Data$ly[,lvNum])
    colnames(latvar) <- c(paste("Lx", lvNum), paste("Ly", lvNum))
 
@@ -109,37 +112,40 @@ plsc_latent_variable <- function(resPLS, design, col4obs, col4group, lvNum, infe
       a.points <- 0.2
    }
 
-   plot.lv <- createFactorMap(latvar,
+   plot.lv <- PTCA4CATA::createFactorMap(latvar,
                               col.points = col4obs,
                               col.labels = col4obs,
                               alpha.points = a.points,
                               display.labels = FALSE
    )
 
-   lat.cor <- cor(latvar[,1], latvar[,2])
+   lat.cor <- stats::cor(latvar[,1], latvar[,2])
 
-   lv.label <- labs(x = paste0("Singular value = ", round(resPLS$TExPosition.Data$pdq$Dv[lvNum], 3), " Correlation = ",
+   lv.label <- labs(x = paste0("Singular value = ",
+                               round(resPLS$TExPosition.Data$pdq$Dv[lvNum], 3),
+                               " Correlation = ",
                                round(lat.cor, 3)))
 
    if(inference){
       # compute means
-      lv.group <- getMeans(latvar, design)
+      lv.group <- PTCA4CATA::getMeans(latvar, design)
 
       # get bootstrap intervals of groups
-      lv.group.boot <- Boot4Mean(latvar, design, niter = 1000)
+      lv.group.boot <- PTCA4CATA::Boot4Mean(latvar, design, niter = 1000)
       colnames(lv.group.boot$BootCube) <- c(paste("Lx", lvNum), paste("Ly", lvNum))
 
 
-      plot.mean <- createFactorMap(lv.group,
+      plot.mean <- PTCA4CATA::createFactorMap(lv.group,
                                     col.points = col4group[rownames(lv.group)],
                                     col.labels = col4group[rownames(lv.group)],
                                     cex = 4,
                                     pch = 17,
                                     alpha.points = 0.8)
 
-      plot.meanCI <- MakeCIEllipses(lv.group.boot$BootCube[,c(1:2),],
+      plot.meanCI <- PTCA4CATA::MakeCIEllipses(lv.group.boot$BootCube[,c(1:2),],
                                      col = col4group[rownames(lv.group)],
-                                     names.of.factors = c(paste("Lx", lvNum), paste("Ly", lvNum))
+                                     names.of.factors = c(paste("Lx", lvNum),
+                                                          paste("Ly", lvNum))
       )
 
       plot<- plot.lv$zeMap_background + plot.lv$zeMap_dots +
@@ -165,10 +171,6 @@ plsc_latent_variable <- function(resPLS, design, col4obs, col4group, lvNum, infe
 #' @param scale2 (default = "SS1") Whether to scale variables in data2.
 #' @param inference (default = TRUE) When design contains 2 or more groups, computes CI and TI on observations. FALSE if no groups.
 #' @param important (default = FALSE) If TRUE, graphs have only the important saliences/bootstrap ratios.
-#' @import stats
-#' @import corrplot
-#' @import TExPosition
-#' @import PTCA4CATA
 #' @export
 mora_plsc <- function(data1,
                     data2,
@@ -183,13 +185,13 @@ mora_plsc <- function(data1,
                     inference = TRUE,
                     important = FALSE){
 
-   data_cor <- cor(data1, data2)
+   data_cor <- stats::cor(data1, data2)
 
-   corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
+   corrplot::corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
             addCoefasPercent = TRUE, addCoef.col = "black",
             number.cex = 0.5, method = "color")
 
-   resPLS <- tepPLS(data1, data2, scale1 = scale1, scale2 = scale2,
+   resPLS <- TExPosition::tepPLS(data1, data2, scale1 = scale1, scale2 = scale2,
                     center1 = center1, center2 = center2,
                     DESIGN = design, graphs = FALSE)
 
@@ -199,14 +201,14 @@ mora_plsc <- function(data1,
    Dv <- resPLS$TExPosition.Data$pdq$Dv
    q <- resPLS$TExPosition.Data$pdq$q
 
-   PLSperm <- perm4PLSC(data1, data2, scale1 = scale1, scale2 = scale2,
+   PLSperm <- data4PCCAR::perm4PLSC(data1, data2, scale1 = scale1, scale2 = scale2,
                         center1 = center1, center2 = center2,
                         permType = 'byColumns')
 
-   singularScree <- PlotScree(resPLS$TExPosition.Data$pdq$Dv,
+   singularScree <- PTCA4CATA::PlotScree(resPLS$TExPosition.Data$pdq$Dv,
                               title = "Singular Values")
 
-   eigenScree <- PlotScree(resPLS$TExPosition.Data$eigs,
+   eigenScree <- PTCA4CATA::PlotScree(resPLS$TExPosition.Data$eigs,
                            p.ev = PLSperm$pEigenvalues,
                            plotKaiser = TRUE,
                            title = "Eigenvalues")
@@ -220,7 +222,7 @@ mora_plsc <- function(data1,
    deflation1 <- (p[,1] * Dv[1]) %*% t(q[,1])
    data_cor2 <- data_cor - deflation1
 
-   corrplot(data_cor2, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
+   corrplot::corrplot(data_cor2, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
             addCoefasPercent = TRUE, addCoef.col = "black",
             number.cex = 0.5, method = "color")
 
@@ -231,16 +233,16 @@ mora_plsc <- function(data1,
 
 }
 
-#' @import data4PCCAR
+
 plsc_first_pos <- function(resFile, data1, data2, center1, center2, scale1, scale2){
    if (attr(resFile, "class")[1] != "texpoOutput") {
       stop("plsc_first_pos works only with TExPosition objects")
    }
 
-   data1.CS <- expo.scale(data1, center1, scale1)
-   data2.CS <- expo.scale(data2, center2, scale2)
+   data1.CS <- ExPosition::expo.scale(data1, center1, scale1)
+   data2.CS <- ExPosition::expo.scale(data2, center2, scale2)
 
-   QP <- firstpos(resFile$TExPosition.Data$pdq$p, resFile$TExPosition.Data$pdq$q)
+   QP <- data4PCCAR::firstpos(resFile$TExPosition.Data$pdq$p, resFile$TExPosition.Data$pdq$q)
    resFile$TExPosition.Data$pdq$p <- QP$P
    resFile$TExPosition.Data$pdq$q <- QP$Q
 

@@ -1,7 +1,7 @@
 Package: moRa
 Type: Package
 Title: Multivariate Analysis and Graphs
-Version: 0.3.0
+Version: 0.4.0
 Author: Luke Moraglia
 Maintainer: Luke Moraglia <Luke.Moraglia@UTDallas.edu>
 Description: A package written mainly for my own use when presenting analysis
@@ -15,12 +15,11 @@ Imports:
     corrplot,
     data4PCCAR,
     ExPosition,
-    ggplot2,
     ggplotify,
+    ggplot2,
     glue,
     gridExtra,
     InPosition,
-    magrittr,
     prettyGraphs,
     PTCA4CATA,
     stats,

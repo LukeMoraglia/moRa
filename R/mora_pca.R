@@ -1,8 +1,10 @@
 #' @import ggplot2
 #' @import stats
-MakeToleranceIntervals1 <- function (data, design, axis1 = 1, axis2 = 2, names.of.factors = paste0("Dimension ",
-                                                                                                   c(axis1, axis2)), col = NULL, centers = NULL, line.size = 1,
-                                     line.type = 1, alpha.ellipse = 0.3, alpha.line = 0.5, p.level = 0.66,
+MakeToleranceIntervals1 <- function (data, design, axis1 = 1, axis2 = 2,
+                                     names.of.factors = paste0("Dimension ", c(axis1, axis2)),
+                                     col = NULL, centers = NULL, line.size = 1,
+                                     line.type = 1, alpha.ellipse = 0.3,
+                                     alpha.line = 0.5, p.level = 0.66,
                                      type = "hull")
 {
    design <- factor(design)
@@ -52,7 +54,7 @@ MakeToleranceIntervals1 <- function (data, design, axis1 = 1, axis2 = 2, names.o
       else {
          row2keep <- stats::complete.cases(X2plot[, 1:2])
          X.non.na <- X2plot[row2keep, 1:2]
-         elli <- ggConvexHull(data = X.non.na, x_axis = 1,
+         elli <- PTCA4CATA::ggConvexHull(data = X.non.na, x_axis = 1,
                               y_axis = 2, percentage = p.level, col.line = items.colors[i],
                               alpha.line = alpha.line, line.size = line.size,
                               line.type = line.type, col.hull = items.colors[i],
@@ -65,10 +67,11 @@ MakeToleranceIntervals1 <- function (data, design, axis1 = 1, axis2 = 2, names.o
 
 
 #' @import ggplot2
-#' @import prettyGraphs
-MakeCIEllipses1 <- function (data, axis1 = 1, axis2 = 2, names.of.factors = paste0("Dimension ",
-                                                                                   c(axis1, axis2)), col = NULL, centers = NULL, line.size = 1,
-                             line.type = 1, alpha.ellipse = 0.3, alpha.line = 0.5, p.level = 0.95)
+MakeCIEllipses1 <- function (data, axis1 = 1, axis2 = 2,
+                             names.of.factors = paste0("Dimension ", c(axis1, axis2)),
+                             col = NULL, centers = NULL, line.size = 1,
+                             line.type = 1, alpha.ellipse = 0.3,
+                             alpha.line = 0.5, p.level = 0.95)
 {
    Nom2Rows <- unlist(dimnames(data)[1])
    X <- aperm(data, c(1, 3, 2))
@@ -112,8 +115,7 @@ MakeCIEllipses1 <- function (data, axis1 = 1, axis2 = 2, names.of.factors = past
    return(LeGraph.elli)
 }
 
-#' @import PTCA4CATA
-#' @import stats
+
 pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, inference = TRUE){
    #resPCA$Fixed.Data$Plotting.Data$fi.col <- col4fii
    a.points <- 0.9
@@ -121,7 +123,7 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
       a.points <- 0.15
    }
 
-   my.fi.plot <- createFactorMap(resPCA$Fixed.Data$ExPosition.Data$fi,
+   my.fi.plot <- PTCA4CATA::createFactorMap(resPCA$Fixed.Data$ExPosition.Data$fi,
                                  title = "Row Factor Scores",
                                  axis1 = axis1, axis2 = axis2,
                                  pch = 19,
@@ -133,7 +135,7 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
                                  col.labels = col4obs,
    )
 
-   fi.labels <- createxyLabels.gen(axis1, axis2,
+   fi.labels <- PTCA4CATA::createxyLabels.gen(axis1, axis2,
                                    lambda = resPCA$Fixed.Data$ExPosition.Data$eigs,
                                    tau = round(resPCA$Fixed.Data$ExPosition.Data$t),
                                    axisName = "Component "
@@ -141,7 +143,7 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
    fi.plot <- my.fi.plot$zeMap + fi.labels
 
    if(inference){
-      group.mean <- aggregate(resPCA$Fixed.Data$ExPosition.Data$fi,
+      group.mean <- stats::aggregate(resPCA$Fixed.Data$ExPosition.Data$fi,
                               by = list(design), # must be a list
                               mean)
 
@@ -149,7 +151,7 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
       rownames(group.mean) <- group.mean[,1] # Use the first column as row names
       fi.mean <- group.mean[,-1] # Exclude the first column
 
-      fi.mean.plot <- createFactorMap(fi.mean,
+      fi.mean.plot <- PTCA4CATA::createFactorMap(fi.mean,
                                       alpha.points = 1,
                                       col.points = col4group[rownames(fi.mean)],
                                       col.labels = col4group[rownames(fi.mean)],
@@ -170,7 +172,7 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
       print(fi.WithTI)
 
       # Depending on the size of your data, this might take a while
-      fi.boot <- Boot4Mean(resPCA$Fixed.Data$ExPosition.Data$fi,
+      fi.boot <- PTCA4CATA::Boot4Mean(resPCA$Fixed.Data$ExPosition.Data$fi,
                            design = design,
                            niter = 1000, suppressProgressBar = FALSE)
 
@@ -191,15 +193,12 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
 
 }
 
-#' @import stats
-#' @import PTCA4CATA
 #' @import ggplot2
-#' @import prettyGraphs
 pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
 
-   cor.loading <- cor(data, resPCA$Fixed.Data$ExPosition.Data$fi)
+   cor.loading <- stats::cor(data, resPCA$Fixed.Data$ExPosition.Data$fi)
 
-   loading.plot <- createFactorMap(cor.loading,
+   loading.plot <- PTCA4CATA::createFactorMap(cor.loading,
                                    constraints = list(minx = -1, miny = -1, maxx = 1, maxy = 1),
                                    font.face = "plain",
                                    text.cex = 2.5,
@@ -209,14 +208,14 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
                                    axis2 = axis2)
 
    LoadingMapWithCircles <- loading.plot$zeMap +
-      addArrows(cor.loading,
+      PTCA4CATA::addArrows(cor.loading,
                 color = "black",
                 size = 0.5,
                 arrowLength = 0.2,
                 alpha = 0.2,
                 axis1 = axis1,
                 axis2 = axis2) +
-      addCircleOfCor() + xlab(paste("Component", axis1)) + ylab(paste("Component", axis2))
+      PTCA4CATA::addCircleOfCor() + xlab(paste("Component", axis1)) + ylab(paste("Component", axis2))
 
    print(LoadingMapWithCircles)
 
@@ -225,7 +224,7 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
       colFactorMap <- "darkorchid4"
    }
 
-   my.fj.plot <- createFactorMap(resPCA$Fixed.Data$ExPosition.Data$fj,
+   my.fj.plot <- PTCA4CATA::createFactorMap(resPCA$Fixed.Data$ExPosition.Data$fj,
                               #constraints = list(minx = -1, miny = -1, maxx = 1, maxy = 1),
                               font.face = "plain",
                               text.cex = 2.5,
@@ -237,7 +236,7 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
                               col.labels = colFactorMap
    )
 
-   fj.labels <- createxyLabels.gen(axis1, axis2,
+   fj.labels <- PTCA4CATA::createxyLabels.gen(axis1, axis2,
                                    lambda = resPCA$Fixed.Data$ExPosition.Data$eigs,
                                    tau = round(resPCA$Fixed.Data$ExPosition.Data$t),
                                    axisName = "Component "
@@ -249,7 +248,7 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
       sign(resPCA$Fixed.Data$ExPosition.Data$fj)
 
    # plot contributions for component 1
-   ctrJ.1 <- PrettyBarPlot2(signed.ctrJ[,axis1],
+   ctrJ.1 <- PTCA4CATA::PrettyBarPlot2(signed.ctrJ[,axis1],
                             threshold = 1 / NROW(signed.ctrJ),
                             font.size = 3,
                             color4bar = col4var,
@@ -258,7 +257,7 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
       ggtitle("Contribution barplots", subtitle = paste("Component", axis1))
 
    # plot contributions for component 2
-   ctrJ.2 <- PrettyBarPlot2(signed.ctrJ[,axis2],
+   ctrJ.2 <- PTCA4CATA::PrettyBarPlot2(signed.ctrJ[,axis2],
                             threshold = 1 / NROW(signed.ctrJ),
                             font.size = 3,
                             color4bar = col4var,
@@ -287,9 +286,6 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
 #' @param scale (default = "SS1") Whether to scale variables
 #' @param want34 (default = FALSE) By default, only prints dimensions 1 and 2. Set to TRUE for 3 and 4.
 #' @param inference (default = TRUE) When design contains 2 or more groups, computes CI and TI on observations. FALSE if no groups.
-#' @importFrom corrplot corrplot
-#' @importFrom PTCA4CATA PlotScree
-#' @import InPosition
 #' @export
 mora_pca <- function(data,
                     design = NULL,
@@ -301,16 +297,16 @@ mora_pca <- function(data,
                     scale = "SS1",
                     want34 = FALSE,
                     inference = TRUE){
-   data_cor <- cor(data)
+   data_cor <- stats::cor(data)
 
-   corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
+   corrplot::corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
             addCoefasPercent = TRUE, addCoef.col = "black",
             number.cex = 0.5, method = "color")
 
-   resPCA <- epPCA.inference.battery(data, center = center, scale = scale,
+   resPCA <- InPosition::epPCA.inference.battery(data, center = center, scale = scale,
                                      DESIGN = design, graphs = FALSE, test.iters = 1000)
 
-   scree <- PlotScree(ev = resPCA$Fixed.Data$ExPosition.Data$eigs,
+   scree <- PTCA4CATA::PlotScree(ev = resPCA$Fixed.Data$ExPosition.Data$eigs,
                            p.ev = resPCA$Inference.Data$components$p.vals,
                            plotKaiser = TRUE)
 
