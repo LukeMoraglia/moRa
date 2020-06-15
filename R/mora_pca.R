@@ -67,50 +67,63 @@ MakeToleranceIntervals1 <- function (data, design, axis1 = 1, axis2 = 2,
 
 
 #' @import ggplot2
-MakeCIEllipses1 <- function (data, axis1 = 1, axis2 = 2,
-                             names.of.factors = paste0("Dimension ", c(axis1, axis2)),
-                             col = NULL, centers = NULL, line.size = 1,
-                             line.type = 1, alpha.ellipse = 0.3,
-                             alpha.line = 0.5, p.level = 0.95)
-{
-   Nom2Rows <- unlist(dimnames(data)[1])
-   X <- aperm(data, c(1, 3, 2))
-   if (is.null(names.of.factors)) {
-      names.of.factors = unlist(dimnames(data)[2])
-   }
+MakeCIEllipses1 <- function(data, # A cube of Bootstrap from Boot4PTCA
+                           # I * #factor * nBooistrapIterations
+                           axis1 = 1, axis2 = 2, # Axes to plots
+                           names.of.factors =
+                              paste0('Dimension ',c(axis1,axis2)), #
+                           # Needed to avoid conflict when plotting
+                           # these names need to be the same as Fi/Fj/Fij
+                           col = NULL,
+                           # The colors for the ellipses
+                           centers = NULL,  # The centers of the ellipses
+                           # if null use the boostrap means
+                           # should be a I * # factors
+                           line.size = 1,
+                           line.type = 1,
+                           alpha.ellipse = .3,
+                           alpha.line    = .5,
+                           p.level = .95
+){
+   Nom2Rows  <- unlist(dimnames(data)[1])
+   X <-  aperm(data,c(1,3,2)) # Flaten the cube
+   # rm(data)  # Not needed any more
    DimBoot <- dim(data)
-   dim(X) <- c(DimBoot[1] * DimBoot[3], DimBoot[2])
-   rownames(X) <- rep(Nom2Rows, DimBoot[3])
+   dim(X) <- c(DimBoot[1]*DimBoot[3],DimBoot[2])
+   X <- X[,c(axis1, axis2)]    # Added to select only the factors needed.
+   if (is.null(names.of.factors)){
+      names.of.factors = unlist((dimnames(data)[2])[c(axis1, axis2)]) # Changed so that name.of.factors is length 2 and only the factors needed.
+   }
+   rownames(X) <- rep(Nom2Rows, DimBoot[3] )
+   # We need that to be compatible for ggplots2
    colnames(X) <- names.of.factors
    nItems = DimBoot[1]
-   if (is.null(col)) {
-      items.colors <- prettyGraphs::prettyGraphsColorSelection(nItems)
-   }
-   else {
-      items.colors <- col
-   }
-   if (length(items.colors) == 1) {
-      items.colors = rep(items.colors, nItems)
-   }
-   if (length(items.colors) != nItems) {
-      items.colors = rep(items.colors[1], nItems)
-   }
-   LeGraph.elli <- list()
-   for (i in 1:nItems) {
-      X2plot <- as.data.frame(X[row.names(X) == Nom2Rows[i],
-                                ])
-      if (!is.null(centers)) {
-         truc <- as.data.frame(sweep(sweep(as.matrix(X2plot),
-                                           2, colMeans(X2plot)), 2, -as.matrix(centers[i,
-                                                                                       ])))
-         X2plot <- truc
+   if (is.null(col)){items.colors <-
+      prettyGraphs::prettyGraphsColorSelection(nItems)
+   } else {items.colors <- col}
+   if(length(items.colors) == 1){items.colors= rep(items.colors,nItems)}
+   if(length(items.colors) != nItems){items.colors= rep(items.colors[1],nItems)}
+   LeGraph.elli <- list() # initialize
+   for (i in  1:nItems){
+      X2plot <- as.data.frame(X[row.names(X)==Nom2Rows[i],])
+      if (!is.null(centers)){
+         # Stuff to finish. HA /02/01/2016
+         # Recenter the ellipses on specific centers
+         truc <- as.data.frame(sweep(sweep( as.matrix(X2plot),
+                                            2, colMeans(X2plot) ), 2,
+                                     -as.matrix(centers[i,])))
+         X2plot <- truc # recentered
       }
-      elli <- ggplot2::stat_ellipse(data = X2plot[, 1:2], ggplot2::aes(color = alpha(items.colors[i],
-                                                                                          alpha.line)), show.legend = FALSE, geom = "polygon",
-                                    fill = ggplot2::alpha(items.colors[i], alpha.ellipse),
-                                    type = "t", level = p.level, color = items.colors[i],
-                                    size = line.size, linetype = line.type)
-      LeGraph.elli[[i]] <- elli
+      #df_ell <- data.frame()
+
+      elli <- ggplot2::stat_ellipse(data = X2plot,  # Changed because the columns are already selected
+                                    ggplot2::aes(color=alpha(items.colors[i],alpha.line )),
+                                    show.legend = FALSE, geom = 'polygon',# center = c(0,0),
+                                    fill = ggplot2::alpha(items.colors[i],
+                                                          alpha.ellipse),
+                                    type = 't',level = p.level,color = items.colors[i],
+                                    size=line.size, linetype=line.type)
+      LeGraph.elli[[i]] <-  elli
    }
    return(LeGraph.elli)
 }
