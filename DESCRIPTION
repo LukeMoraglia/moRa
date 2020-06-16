@@ -22,11 +22,14 @@ Imports:
     gridExtra,
     gplots,
     InPosition,
+    magrittr,
     prettyGraphs,
     PTCA4CATA,
     RColorBrewer,
     stats,
     TExPosition,
     TInPosition
+Suggests:
+    purrr
 URL: https://github.com/LukeMoraglia/moRa
 BugReports: https://github.com/LukeMoraglia/moRa/issues

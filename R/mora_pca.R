@@ -1,136 +1,5 @@
-#' @import ggplot2
-#' @import stats
-MakeToleranceIntervals1 <- function (data, design, axis1 = 1, axis2 = 2,
-                                     names.of.factors = paste0("Dimension ", c(axis1, axis2)),
-                                     col = NULL, centers = NULL, line.size = 1,
-                                     line.type = 1, alpha.ellipse = 0.3,
-                                     alpha.line = 0.5, p.level = 0.66,
-                                     type = "hull")
-{
-   design <- factor(design)
-   Nom2Rows <- levels(design)
-   X <- data[, c(axis1, axis2)]
-   if (length(design) != NROW(X)) {
-      stop("Length of Design should be equal to nrow(Data)")
-   }
-   if (is.null(names.of.factors)) {
-      names.of.factors = unlist(dimnames(X)[2])
-   }
-   if (is.null(names.of.factors)) {
-      names.of.factors = paste0("Dimension ", c(axis1,
-                                                axis2))
-   }
-   colnames(X) <- names.of.factors
-   nItems = length(Nom2Rows)
-   if (is.null(col)) {
-      items.colors <- prettyGraphs::prettyGraphsColorSelection(nItems)
-   }
-   else {
-      items.colors <- col
-   }
-   if (length(items.colors) == 1) {
-      items.colors = rep(items.colors, nItems)
-   }
-   if (length(items.colors) != nItems) {
-      items.colors = rep(items.colors[1], nItems)
-   }
-   LeGraph.elli <- list()
-   for (i in 1:nItems) {
-      X2plot <- as.data.frame(X[design == Nom2Rows[i], ])
-      if (!is.null(centers)) {
-         truc <- as.data.frame(sweep(sweep(as.matrix(X2plot),
-                                           2, colMeans(X2plot)), 2, -as.matrix(centers[i,
-                                                                                       ])))
-         X2plot <- truc
-      }
-      if (tolower(type) == "ellipse") {
-         elli <- ggplot2::stat_ellipse(data = X2plot[, c(axis1,
-                                                         axis2)], ggplot2::aes_(color = alpha(items.colors[i],
-                                                                                              alpha.line)), show.legend = FALSE, geom = "polygon",
-                                       fill = ggplot2::alpha(items.colors[i], alpha.ellipse),
-                                       type = "t", na.rm = TRUE, level = p.level,
-                                       color = items.colors[i], size = line.size, linetype = line.type)
-      }
-      else {
-         row2keep <- stats::complete.cases(X2plot[, 1:2])
-         X.non.na <- X2plot[row2keep, 1:2]
-         elli <- PTCA4CATA::ggConvexHull(data = X.non.na, x_axis = 1,
-                              y_axis = 2, percentage = p.level, col.line = items.colors[i],
-                              alpha.line = alpha.line, line.size = line.size,
-                              line.type = line.type, col.hull = items.colors[i],
-                              alpha.hull = alpha.ellipse, names.of.factors = names.of.factors)
-      }
-      LeGraph.elli[[i]] <- elli
-   }
-   return(LeGraph.elli)
-}
-
-
-#' @import ggplot2
-MakeCIEllipses1 <- function(data, # A cube of Bootstrap from Boot4PTCA
-                           # I * #factor * nBooistrapIterations
-                           axis1 = 1, axis2 = 2, # Axes to plots
-                           names.of.factors =
-                              paste0('Dimension ',c(axis1,axis2)), #
-                           # Needed to avoid conflict when plotting
-                           # these names need to be the same as Fi/Fj/Fij
-                           col = NULL,
-                           # The colors for the ellipses
-                           centers = NULL,  # The centers of the ellipses
-                           # if null use the boostrap means
-                           # should be a I * # factors
-                           line.size = 1,
-                           line.type = 1,
-                           alpha.ellipse = .3,
-                           alpha.line    = .5,
-                           p.level = .95
-){
-   Nom2Rows  <- unlist(dimnames(data)[1])
-   X <-  aperm(data,c(1,3,2)) # Flaten the cube
-   # rm(data)  # Not needed any more
-   DimBoot <- dim(data)
-   dim(X) <- c(DimBoot[1]*DimBoot[3],DimBoot[2])
-   X <- X[,c(axis1, axis2)]    # Added to select only the factors needed.
-   if (is.null(names.of.factors)){
-      names.of.factors = unlist((dimnames(data)[2])[c(axis1, axis2)]) # Changed so that name.of.factors is length 2 and only the factors needed.
-   }
-   rownames(X) <- rep(Nom2Rows, DimBoot[3] )
-   # We need that to be compatible for ggplots2
-   colnames(X) <- names.of.factors
-   nItems = DimBoot[1]
-   if (is.null(col)){items.colors <-
-      prettyGraphs::prettyGraphsColorSelection(nItems)
-   } else {items.colors <- col}
-   if(length(items.colors) == 1){items.colors= rep(items.colors,nItems)}
-   if(length(items.colors) != nItems){items.colors= rep(items.colors[1],nItems)}
-   LeGraph.elli <- list() # initialize
-   for (i in  1:nItems){
-      X2plot <- as.data.frame(X[row.names(X)==Nom2Rows[i],])
-      if (!is.null(centers)){
-         # Stuff to finish. HA /02/01/2016
-         # Recenter the ellipses on specific centers
-         truc <- as.data.frame(sweep(sweep( as.matrix(X2plot),
-                                            2, colMeans(X2plot) ), 2,
-                                     -as.matrix(centers[i,])))
-         X2plot <- truc # recentered
-      }
-      #df_ell <- data.frame()
-
-      elli <- ggplot2::stat_ellipse(data = X2plot,  # Changed because the columns are already selected
-                                    ggplot2::aes(color=alpha(items.colors[i],alpha.line )),
-                                    show.legend = FALSE, geom = 'polygon',# center = c(0,0),
-                                    fill = ggplot2::alpha(items.colors[i],
-                                                          alpha.ellipse),
-                                    type = 't',level = p.level,color = items.colors[i],
-                                    size=line.size, linetype=line.type)
-      LeGraph.elli[[i]] <-  elli
-   }
-   return(LeGraph.elli)
-}
-
-
 pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, inference = TRUE){
-   #resPCA$Fixed.Data$Plotting.Data$fi.col <- col4fii
+
    a.points <- 0.9
    if(inference){
       a.points <- 0.15
@@ -156,6 +25,7 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
    fi.plot <- my.fi.plot$zeMap + fi.labels
 
    if(inference){
+      #update in a future version
       group.mean <- stats::aggregate(resPCA$Fixed.Data$ExPosition.Data$fi,
                               by = list(design), # must be a list
                               mean)
@@ -175,7 +45,7 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
                                       axis2 = axis2)
       fi.WithMean <- fi.plot + fi.mean.plot$zeMap_dots + fi.mean.plot$zeMap_text
 
-      TI <- MakeToleranceIntervals1(resPCA$Fixed.Data$ExPosition.Data$fi,
+      TI <- PTCA4CATA::MakeToleranceIntervals(resPCA$Fixed.Data$ExPosition.Data$fi,
                                    design = design,
                                    col = col4group[rownames(fi.mean)],
                                    p.level = 0.95,
@@ -184,13 +54,13 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
       fi.WithTI <- fi.WithMean + TI
       print(fi.WithTI)
 
-      # Depending on the size of your data, this might take a while
+
       fi.boot <- PTCA4CATA::Boot4Mean(resPCA$Fixed.Data$ExPosition.Data$fi,
-                           design = design,
-                           niter = 1000, suppressProgressBar = FALSE)
+                                       design = design,
+                                       niter = 1000, suppressProgressBar = FALSE)
 
 
-      bootCI4mean <- MakeCIEllipses1(fi.boot$BootCube[,c(axis1, axis2),],
+      bootCI4mean <- PTCA4CATA::MakeCIEllipses(fi.boot$BootCube,
                                     col = col4group[rownames(fi.mean)],
                                     p.level = 0.95,
                                     axis1 = axis1,
@@ -207,9 +77,14 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
 }
 
 #' @import ggplot2
-pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
+pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL, important = FALSE){
 
    cor.loading <- stats::cor(data, resPCA$Fixed.Data$ExPosition.Data$fi)
+
+   colFactorMap <- col4var
+   if(is.null(col4var)){
+      colFactorMap <- "darkorchid4"
+   }
 
    loading.plot <- PTCA4CATA::createFactorMap(cor.loading,
                                    constraints = list(minx = -1, miny = -1, maxx = 1, maxy = 1),
@@ -218,7 +93,9 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
                                    cex = 1,
                                    force = 0.5,
                                    axis1 = axis1,
-                                   axis2 = axis2)
+                                   axis2 = axis2,
+                                   col.points = colFactorMap,
+                                   col.labels = colFactorMap)
 
    LoadingMapWithCircles <- loading.plot$zeMap +
       PTCA4CATA::addArrows(cor.loading,
@@ -232,13 +109,9 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
 
    print(LoadingMapWithCircles)
 
-   colFactorMap <- col4var
-   if(is.null(col4var)){
-      colFactorMap <- "darkorchid4"
-   }
+
 
    my.fj.plot <- PTCA4CATA::createFactorMap(resPCA$Fixed.Data$ExPosition.Data$fj,
-                              #constraints = list(minx = -1, miny = -1, maxx = 1, maxy = 1),
                               font.face = "plain",
                               text.cex = 2.5,
                               cex = 1,
@@ -266,7 +139,8 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
                             font.size = 3,
                             color4bar = col4var,
                             ylab = 'Contributions',
-                            ylim = c(1.2*min(signed.ctrJ[,axis1:axis2]), 1.2*max(signed.ctrJ[,axis1:axis2]))) +
+                            ylim = c(1.2*min(signed.ctrJ[,axis1:axis2]), 1.2*max(signed.ctrJ[,axis1:axis2])),
+                            signifOnly = important) +
       ggtitle("Contribution barplots", subtitle = paste("Component", axis1))
 
    # plot contributions for component 2
@@ -275,16 +149,42 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
                             font.size = 3,
                             color4bar = col4var,
                             ylab = 'Contributions',
-                            ylim = c(1.2*min(signed.ctrJ[,axis1:axis2]), 1.2*max(signed.ctrJ[,axis1:axis2]))) +
+                            ylim = c(1.2*min(signed.ctrJ[,axis1:axis2]), 1.2*max(signed.ctrJ[,axis1:axis2])),
+                            signifOnly = important) +
       ggtitle("",subtitle = paste("Component", axis2))
 
    print(ctrJ.1)
    print(ctrJ.2)
 
-   pca_columns_res <- list(corCircle = LoadingMapWithCircles, fj.plot = my.fj.plot,
-                           ctr = list(ctrJ.1, ctrJ.2))
+   BR <- resPCA$Inference.Data$fj.boots$tests$boot.ratios
 
-   return(pca_columns_res)
+   ba001.BR1 <- PTCA4CATA::PrettyBarPlot2(BR[,axis1],
+                               threshold = 2,
+                               font.size = 3,
+                               color4bar = col4var,
+                               ylab = 'Bootstrap ratios',
+                               ylim = c(1.2*min(BR[,axis1:axis2]), 1.2*max(BR[,axis1:axis2])),
+                               signifOnly = important)+
+      ggtitle("Bootstrap ratios", subtitle = paste0('Component ', axis1))
+
+   ba002.BR2 <- PTCA4CATA::PrettyBarPlot2(BR[,axis2],
+                                          threshold = 2,
+                                          font.size = 3,
+                                          color4bar = col4var,
+                                          ylab = 'Bootstrap ratios',
+                                          ylim = c(1.2*min(BR[,axis1:axis2]), 1.2*max(BR[,axis1:axis2])),
+                                          signifOnly = important)+
+      ggtitle("Bootstrap ratios", subtitle = paste0('Component ', axis2))
+
+   print(ba001.BR1)
+   print(ba002.BR2)
+
+   pca_columns_res <- list(corCircle = LoadingMapWithCircles,
+                           fj.plot = my.fj.plot,
+                           ctr = list(ctrJ.1, ctrJ.2),
+                           BR = list(ba001.BR1, ba002.BR2))
+
+   invisible(pca_columns_res)
 
 }
 
@@ -299,6 +199,8 @@ pca_columns <- function(resPCA, data, axis1, axis2, col4var = NULL){
 #' @param scale (default = "SS1") Whether to scale variables
 #' @param want34 (default = FALSE) By default, only prints dimensions 1 and 2. Set to TRUE for 3 and 4.
 #' @param inference (default = TRUE) When design contains 2 or more groups, computes CI and TI on observations. FALSE if no groups.
+#' @param important (default = FALSE) Only display variables above threshold for ctr and BR
+#' @param test_iters (default = 1000) How many permutations to run
 #' @export
 mora_pca <- function(data,
                     design = NULL,
@@ -309,7 +211,9 @@ mora_pca <- function(data,
                     center = TRUE,
                     scale = "SS1",
                     want34 = FALSE,
-                    inference = TRUE){
+                    inference = TRUE,
+                    important = FALSE,
+                    test_iters = 1000){
    data_cor <- stats::cor(data)
 
    corrplot::corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
@@ -317,7 +221,8 @@ mora_pca <- function(data,
             number.cex = 0.5, method = "color")
 
    resPCA <- InPosition::epPCA.inference.battery(data, center = center, scale = scale,
-                                     DESIGN = design, graphs = FALSE, test.iters = 1000)
+                                     DESIGN = design, graphs = FALSE, test.iters = test_iters,
+                                     make_design_nominal = make_design_nominal)
 
    scree <- PTCA4CATA::PlotScree(ev = resPCA$Fixed.Data$ExPosition.Data$eigs,
                            p.ev = resPCA$Inference.Data$components$p.vals,
@@ -326,12 +231,12 @@ mora_pca <- function(data,
    pca_fscores(resPCA = resPCA, design = design, axis1 = 1, axis2 = 2,
                col4obs = col4obs, col4group = col4group, inference = inference)
 
-   pca_columns(resPCA, data = data, 1, 2, col4var = col4var)
+   pca_columns(resPCA, data = data, 1, 2, col4var = col4var, important = important)
 
    if(want34){
       pca_fscores(resPCA = resPCA, design = design, axis1 = 3, axis2 = 4,
                   col4obs = col4obs, col4group = col4group, inference = inference)
 
-      pca_columns(resPCA, data = data, 3, 4, col4var = col4var)
+      pca_columns(resPCA, data = data, 3, 4, col4var = col4var, important = important)
    }
 }

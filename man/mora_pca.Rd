@@ -14,7 +14,9 @@ mora_pca(
   center = TRUE,
   scale = "SS1",
   want34 = FALSE,
-  inference = TRUE
+  inference = TRUE,
+  important = FALSE,
+  test_iters = 1000
 )
 }
 \arguments{
@@ -37,6 +39,10 @@ mora_pca(
 \item{want34}{(default = FALSE) By default, only prints dimensions 1 and 2. Set to TRUE for 3 and 4.}
 
 \item{inference}{(default = TRUE) When design contains 2 or more groups, computes CI and TI on observations. FALSE if no groups.}
+
+\item{important}{(default = FALSE) Only display variables above threshold for ctr and BR}
+
+\item{test_iters}{(default = 1000) How many permutations to run}
 }
 \description{
 PCA with inference and graphs.
