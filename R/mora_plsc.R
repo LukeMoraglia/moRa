@@ -27,17 +27,25 @@ plsc_saliences <- function(resPLS, lvNum = 1, important = FALSE){
    pPlot <- length(plot.p$data$bootratio) > 0
    qPlot <- length(plot.q$data$bootratio) > 0
 
+   results <- list()
+
    if(pPlot & qPlot){
        gridExtra::grid.arrange(ggplotify::as.grob(plot.p),
                                ggplotify::as.grob(plot.q),
                                nrow = 2)
+      results <- list(pPlot = pPlot,
+                      qPlot = qPlot)
    }
    else if(pPlot){
       print(plot.p)
+      results <- list(pPlot = pPlot)
    }
    else if(qPlot){
       print(plot.q)
+      results <- list(qPlot = qPlot)
    }
+
+   invisible(results)
 
 }
 
@@ -82,17 +90,24 @@ plsc_boot_ratio <- function(data1, data2,
       briplot <- length(plotBRi$data$bootratio) > 0
       brjplot <- length(plotBRj$data$bootratio) > 0
 
+      results <- list()
       if(briplot & brjplot){
          gridExtra::grid.arrange(ggplotify::as.grob(plotBRi),
                                  ggplotify::as.grob(plotBRj),
                                  nrow = 2)
+         results <- list(BRx = plotBRi,
+                         BRy = plotBRj)
       }
       else if(briplot){
          print(plotBRi)
+         results <- list(BRx = plotBRi)
       }
       else if(brjplot){
          print(plotBRj)
+         results <- list(BRy = plotBRj)
       }
+
+      invisible(results)
 }
 
 
@@ -102,7 +117,7 @@ plsc_latent_variable <- function(resPLS,
                                  col4obs,
                                  col4group,
                                  lvNum,
-                                 inference = inference){
+                                 inference = TRUE){
 
    latvar <- cbind(resPLS$TExPosition.Data$lx[,lvNum],resPLS$TExPosition.Data$ly[,lvNum])
    colnames(latvar) <- c(paste("Lx", lvNum), paste("Ly", lvNum))
@@ -153,9 +168,12 @@ plsc_latent_variable <- function(resPLS,
       print(plot)
    }
    else{
-      fullPlot <- plot.lv$zeMap + lv.label
-      print(fullPlot)
+      plot <- plot.lv$zeMap + lv.label
+      print(plot)
    }
+
+   results <- list(lvplot = plot)
+   invisible(results)
 }
 
 #' PLSC with inferences and graphs.
@@ -171,6 +189,7 @@ plsc_latent_variable <- function(resPLS,
 #' @param scale2 (default = "SS1") Whether to scale variables in data2.
 #' @param inference (default = TRUE) When design contains 2 or more groups, computes CI and TI on observations. FALSE if no groups.
 #' @param important (default = FALSE) If TRUE, graphs have only the important saliences/bootstrap ratios.
+#' @param corrplot (default = TRUE) Whether to show a correlation matrix plot
 #' @export
 mora_plsc <- function(data1,
                     data2,
@@ -183,13 +202,16 @@ mora_plsc <- function(data1,
                     scale1 = "SS1",
                     scale2 = "SS1",
                     inference = TRUE,
-                    important = FALSE){
+                    important = FALSE,
+                    corrplot = TRUE){
 
    data_cor <- stats::cor(data1, data2)
 
-   corrplot::corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
-            addCoefasPercent = TRUE, addCoef.col = "black",
-            number.cex = 0.5, method = "color")
+   if(corrplot){
+      corrplot::corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
+               addCoefasPercent = TRUE, addCoef.col = "black",
+               number.cex = 0.5, method = "color")
+   }
 
    resPLS <- TExPosition::tepPLS(data1, data2, scale1 = scale1, scale2 = scale2,
                     center1 = center1, center2 = center2,
@@ -205,39 +227,53 @@ mora_plsc <- function(data1,
                         center1 = center1, center2 = center2,
                         permType = 'byColumns')
 
-   singularScree <- PTCA4CATA::PlotScree(resPLS$TExPosition.Data$pdq$Dv,
-                              title = "Singular Values")
+   # singularScree <- PTCA4CATA::PlotScree(resPLS$TExPosition.Data$pdq$Dv,
+   #                            title = "Singular Values")
 
    eigenScree <- PTCA4CATA::PlotScree(resPLS$TExPosition.Data$eigs,
                            p.ev = PLSperm$pEigenvalues,
                            plotKaiser = TRUE,
                            title = "Eigenvalues")
+   scree <- grDevices::recordPlot()
 
-   plsc_latent_variable(resPLS, design, col4obs, col4group, 1, inference = inference)
+   lv1 <- plsc_latent_variable(resPLS, design, col4obs, col4group, 1, inference = inference)
 
-   plsc_saliences(resPLS, 1, important)
-   plsc_boot_ratio(data1, data2, center1, center2, scale1, scale2, resPLS$TExPosition.Data$fi,
+   sal1 <- plsc_saliences(resPLS, 1, important)
+   br1 <- plsc_boot_ratio(data1, data2, center1, center2, scale1, scale2, resPLS$TExPosition.Data$fi,
            resPLS$TExPosition.Data$fj, 1, important)
 
-   deflation1 <- (p[,1] * Dv[1]) %*% t(q[,1])
-   data_cor2 <- data_cor - deflation1
+   if(corrplot){
+      deflation1 <- (p[,1] * Dv[1]) %*% t(q[,1])
+      data_cor2 <- data_cor - deflation1
 
-   corrplot::corrplot(data_cor2, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
-            addCoefasPercent = TRUE, addCoef.col = "black",
-            number.cex = 0.5, method = "color")
-
-   plsc_latent_variable(resPLS, design, col4obs, col4group, 2, inference = inference)
-   plsc_saliences(resPLS, 2, important)
-   plsc_boot_ratio(data1, data2, center1, center2, scale1, scale2, resPLS$TExPosition.Data$fi,
+      corrplot::corrplot(data_cor2, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
+               addCoefasPercent = TRUE, addCoef.col = "black",
+               number.cex = 0.5, method = "color")
+   }
+   lv2 <- plsc_latent_variable(resPLS, design, col4obs, col4group, 2, inference = inference)
+   sal2 <- plsc_saliences(resPLS, 2, important)
+   br2 <- plsc_boot_ratio(data1, data2, center1, center2, scale1, scale2, resPLS$TExPosition.Data$fi,
            resPLS$TExPosition.Data$fj, 2, important)
 
+   results <- list(TExPosition.Data = resPLS$TExPosition.Data,
+                   Plotting.Data = resPLS$Plotting.Data,
+                   perm = PLSperm,
+                   scree = scree,
+                   lv1 = lv1,
+                   lv2 = lv2,
+                   sal1 = sal1,
+                   sal2 = sal2,
+                   br1 = br1,
+                   br2 = br2
+                   )
+   invisible(results)
 }
 
 
 plsc_first_pos <- function(resFile, data1, data2, center1, center2, scale1, scale2){
-   if (attr(resFile, "class")[1] != "texpoOutput") {
-      stop("plsc_first_pos works only with TExPosition objects")
-   }
+   # if (attr(resFile, "class")[1] != "texpoOutput") {
+   #    stop("plsc_first_pos works only with TExPosition objects")
+   # }
 
    data1.CS <- ExPosition::expo.scale(data1, center1, scale1)
    data2.CS <- ExPosition::expo.scale(data2, center2, scale2)

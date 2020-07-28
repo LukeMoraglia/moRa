@@ -16,7 +16,8 @@ mora_plsc(
   scale1 = "SS1",
   scale2 = "SS1",
   inference = TRUE,
-  important = FALSE
+  important = FALSE,
+  corrplot = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ mora_plsc(
 \item{inference}{(default = TRUE) When design contains 2 or more groups, computes CI and TI on observations. FALSE if no groups.}
 
 \item{important}{(default = FALSE) If TRUE, graphs have only the important saliences/bootstrap ratios.}
+
+\item{corrplot}{(default = TRUE) Whether to show a correlation matrix plot}
 }
 \description{
 PLSC with inferences and graphs.

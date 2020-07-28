@@ -69,10 +69,18 @@ pca_fscores <- function(resPCA, design, axis1, axis2, col4obs, col4group, infere
 
       fi.WithMeanCI <- fi.WithMean + bootCI4mean
       print(fi.WithMeanCI)
+
+      pca_fscores_res <- list(fi.plot,
+                              fi.WithMean,
+                              fi.WithTI,
+                              fi.WithMeanCI)
    }
    else{
       print(fi.plot)
+      pca_fscores_res <- list(fi.plot)
    }
+
+   invisible(pca_fscores_res)
 
 }
 
@@ -216,9 +224,9 @@ mora_pca <- function(data,
                     test_iters = 1000){
    data_cor <- stats::cor(data)
 
-   corrplot::corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
-            addCoefasPercent = TRUE, addCoef.col = "black",
-            number.cex = 0.5, method = "color")
+   cor_plot <- corrplot::corrplot(data_cor, tl.cex = 0.7, tl.pos = "lt", tl.col = "black",
+                  addCoefasPercent = TRUE, addCoef.col = "black",
+                  number.cex = 0.5, method = "color")
 
    resPCA <- InPosition::epPCA.inference.battery(data, center = center, scale = scale,
                                      DESIGN = design, graphs = FALSE, test.iters = test_iters,
@@ -228,15 +236,26 @@ mora_pca <- function(data,
                            p.ev = resPCA$Inference.Data$components$p.vals,
                            plotKaiser = TRUE)
 
-   pca_fscores(resPCA = resPCA, design = design, axis1 = 1, axis2 = 2,
+   fscores12 <- pca_fscores(resPCA = resPCA, design = design, axis1 = 1, axis2 = 2,
                col4obs = col4obs, col4group = col4group, inference = inference)
 
-   pca_columns(resPCA, data = data, 1, 2, col4var = col4var, important = important)
+   columns12 <- pca_columns(resPCA, data = data, 1, 2, col4var = col4var, important = important)
+
+   mora_pca_res <- list("resPCA" = resPCA,
+                        "cor_plot" = cor_plot,
+                        "scree" = scree,
+                        "fscores12" = fscores12,
+                        "columns12" = columns12)
 
    if(want34){
-      pca_fscores(resPCA = resPCA, design = design, axis1 = 3, axis2 = 4,
+      fscores34 <- pca_fscores(resPCA = resPCA, design = design, axis1 = 3, axis2 = 4,
                   col4obs = col4obs, col4group = col4group, inference = inference)
 
-      pca_columns(resPCA, data = data, 3, 4, col4var = col4var, important = important)
+      columns34 <- pca_columns(resPCA, data = data, 3, 4, col4var = col4var, important = important)
+
+      mora_pca_res[["fscores34"]] <- fscores34
+      mora_pca_res[["columns34"]] <- columns34
    }
+
+   invisible(mora_pca_res)
 }
